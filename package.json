@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@three-ts/orbit-controls": "^1.4.7",
+    "dat.gui": "^0.7.7",
     "three": "~0.134.0"
   },
   "devDependencies": {
