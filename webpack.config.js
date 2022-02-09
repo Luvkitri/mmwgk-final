@@ -22,10 +22,14 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
+        use: "ts-loader",
+        exclude: /node_modules/,
       },
-    ]
+      {
+        test: /\.(png|jpg|jpeg|gif)$/i,
+        type: "asset/resource",
+      },
+    ],
   },
   watchOptions: {
     ignored: /node_modules/
