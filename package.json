@@ -11,7 +11,8 @@
     "@three-ts/orbit-controls": "^1.4.7",
     "dat.gui": "^0.7.7",
     "stats.ts": "^1.1.0",
-    "three": "~0.134.0"
+    "three": "~0.134.0",
+    "three-csg-ts": "^3.1.9"
   },
   "devDependencies": {
     "@types/three": "^0.134.0",

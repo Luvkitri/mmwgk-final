@@ -15,10 +15,16 @@ import {
 import { Stats } from "stats.ts";
 import { Sky } from "./models/Sky";
 import { Water } from "./models/Water";
+import { Terrain } from "./models/Terrain";
 import { OrbitControls } from "@three-ts/orbit-controls";
-import { Brick } from "./brick";
 import * as dat from "dat.gui";
+
+// Textures
 import * as WaterTexture from "./assets/textures/waternormals.jpg";
+import * as GrassTexture from "./assets/textures/grass-texture.jpg";
+import * as DirtTexture from "./assets/textures/dirt-texture.jpg";
+import * as WallTexture from "./assets/textures/stone-wall-texture.jpg";
+import { Wall } from "./models/Wall";
 
 export class App {
   private readonly scene = new Scene();
@@ -46,14 +52,11 @@ export class App {
   private stats: Stats;
   private sun: Vector3;
   private sky: Sky;
-  private brick: Brick;
+  private terrain: Terrain;
   private gui: any;
   private water: Water;
 
   constructor() {
-    this.brick = new Brick(100, new Color("rgb(255,0,0)"));
-    this.scene.add(this.brick);
-
     // Add FPS Counter
     this.stats = new Stats();
     this.stats.showPanel(0);
@@ -78,19 +81,40 @@ export class App {
       sunColor: 0xffffff,
       waterColor: 0x001e0f,
       distortionScale: 3.7,
-      fog: true
+      fog: true,
     });
     this.water.rotation.x = -Math.PI / 2;
     this.scene.add(this.water);
 
     // Add Fog
-    this.scene.fog = new Fog(new Color(0xDFE9F3), 1000, 8000)
+    this.scene.fog = new Fog(new Color(0xdfe9f3), 1000, 10000);
 
+    // Add Terrain
+    const terrainMultiplier = 8;
+    this.terrain = new Terrain(
+      512 * terrainMultiplier,
+      512,
+      512 * terrainMultiplier,
+      new TextureLoader().load(GrassTexture, function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(terrainMultiplier, terrainMultiplier);
+      }),
+      new TextureLoader().load(DirtTexture, function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(terrainMultiplier, 2);
+      })
+    );
+    this.scene.add(this.terrain);
+
+    // Add Walls
+    this.initWalls();
     // Add gui
     this.gui = new dat.GUI();
 
     // Add camera
-    this.camera.position.set(1000, 100, 1000);
+    this.camera.position.set(5000, 1000, 5000);
     this.camera.lookAt(new Vector3(0, 0, 0));
 
     // Renderer config
@@ -171,15 +195,41 @@ export class App {
     this.camera.updateProjectionMatrix();
   }
 
+  private initWalls() {
+    const wallTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(6, 2);
+      }
+    );
+
+    const walls = [
+      new Wall(700, 400, 0, 0, 880, wallTexture),     // north-west
+      new Wall(700, 400, 45, 600, 600, wallTexture),  // west
+      new Wall(700, 400, 90, 880, 0, wallTexture), // south-west
+      new Wall(700, 400, 135, 600, -600, wallTexture),  //south
+      new Wall(700, 400, 180, 0, -880, wallTexture), // south-east
+      new Wall(700, 400, 225, -600, -600, wallTexture), // east
+      new Wall(700, 400, 270, -880, 0, wallTexture), // north-east
+      new Wall(700, 400, 315, -600, 600, wallTexture),  // north
+      
+    ];
+
+    for (const wall of walls) {
+      this.scene.add(wall);
+    }
+  }
+
   private render() {
-    this.stats.begin()
+    this.stats.begin();
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.render());
     this.adjustCanvasSize();
-    this.brick.rotateY(0.03);
 
     // Water movement
     this.water.material.uniforms["time"].value += 1.0 / 60.0;
-    this.stats.end()
+    this.stats.end();
   }
 }
