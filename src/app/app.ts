@@ -11,6 +11,9 @@ import {
   TextureLoader,
   RepeatWrapping,
   Fog,
+  DirectionalLight,
+  PCFSoftShadowMap,
+  CameraHelper,
 } from "three";
 import { Stats } from "stats.ts";
 import { Sky } from "./models/Sky";
@@ -25,6 +28,8 @@ import * as GrassTexture from "./assets/textures/grass-texture.jpg";
 import * as DirtTexture from "./assets/textures/dirt-texture.jpg";
 import * as WallTexture from "./assets/textures/stone-wall-texture.jpg";
 import { Wall } from "./models/Wall";
+import { Tower } from "./models/Tower";
+import { StraightBattlements } from "./models/StraightBattlements";
 
 export class App {
   private readonly scene = new Scene();
@@ -55,8 +60,16 @@ export class App {
   private terrain: Terrain;
   private gui: any;
   private water: Water;
+  private light: DirectionalLight;
 
   constructor() {
+    // Renderer config
+    this.renderer.setSize(innerWidth, innerHeight);
+    this.renderer.outputEncoding = sRGBEncoding;
+    this.renderer.toneMapping = ACESFilmicToneMapping;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = PCFSoftShadowMap;
+
     // Add FPS Counter
     this.stats = new Stats();
     this.stats.showPanel(0);
@@ -86,8 +99,24 @@ export class App {
     this.water.rotation.x = -Math.PI / 2;
     this.scene.add(this.water);
 
+    // Add Light
+    this.light = new DirectionalLight(0xffffff, 0.8);
+    this.light.castShadow = true; // default false
+    this.scene.add(this.light);
+
+    this.light.shadow.camera.far = 5000;
+    this.light.shadow.camera.left = -3000;
+    this.light.shadow.camera.bottom = -3000;
+    this.light.shadow.camera.right = 3000;
+    this.light.shadow.camera.top = 3000;
+    this.light.shadow.camera.near = 0.5;
+
     // Add Fog
     this.scene.fog = new Fog(new Color(0xdfe9f3), 1000, 10000);
+
+    // Add gui
+    this.gui = new dat.GUI();
+    this.initGuiControls();
 
     // Add Terrain
     const terrainMultiplier = 8;
@@ -110,20 +139,21 @@ export class App {
 
     // Add Walls
     this.initWalls();
-    // Add gui
-    this.gui = new dat.GUI();
+
+    // Add Towers
+    this.initTowers();
+
+    // Add Castle
+    this.initCastle();
 
     // Add camera
     this.camera.position.set(5000, 1000, 5000);
     this.camera.lookAt(new Vector3(0, 0, 0));
-
-    // Renderer config
-    this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.outputEncoding = sRGBEncoding;
-    this.renderer.toneMapping = ACESFilmicToneMapping;
-
     this.initCameraControls();
-    this.initGuiControls();
+
+    const helper = new CameraHelper(this.light.shadow.camera);
+    this.scene.add(helper);
+
     this.render();
   }
 
@@ -163,6 +193,8 @@ export class App {
       .copy(this.sun)
       .normalize();
 
+    this.light.position.set(4000 * this.sun.x, 4000 * this.sun.y, 4000 * this.sun.z);
+
     this.renderer.toneMappingExposure = this.effectController.exposure;
   }
 
@@ -201,24 +233,130 @@ export class App {
       function (texture) {
         texture.wrapS = texture.wrapT = RepeatWrapping;
         texture.offset.set(0, 0);
-        texture.repeat.set(6, 2);
+        texture.repeat.set(3, 2);
+      }
+    );
+
+    const battlementTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(0.2, 0.2);
       }
     );
 
     const walls = [
-      new Wall(700, 400, 0, 0, 880, wallTexture),     // north-west
-      new Wall(700, 400, 45, 600, 600, wallTexture),  // west
-      new Wall(700, 400, 90, 880, 0, wallTexture), // south-west
-      new Wall(700, 400, 135, 600, -600, wallTexture),  //south
-      new Wall(700, 400, 180, 0, -880, wallTexture), // south-east
-      new Wall(700, 400, 225, -600, -600, wallTexture), // east
-      new Wall(700, 400, 270, -880, 0, wallTexture), // north-east
-      new Wall(700, 400, 315, -600, 600, wallTexture),  // north
-      
+      new Wall(700, 400, 100, 0, 0, 880, wallTexture), // north-west
+      new Wall(700, 400, 100, 45, 600, 600, wallTexture), // west
+      // new Wall(700, 400, 100, 90, 880, 0, wallTexture), // south-west
+      new Wall(700, 400, 100, 135, 600, -600, wallTexture), //south
+      new Wall(700, 400, 100, 180, 0, -880, wallTexture), // south-east
+      new Wall(700, 400, 100, 225, -600, -600, wallTexture), // east
+      new Wall(700, 400, 100, 270, -880, 0, wallTexture), // north-east
+      new Wall(700, 400, 100, 315, -600, 600, wallTexture), // north
+    ];
+
+    const battlements = [
+      new StraightBattlements(700, 0, 0, 476, 920, battlementTexture),
+      new StraightBattlements(700, 45, 630, 476, 630, battlementTexture),
+      // new StraightBattlements(700, 0, 0, 476, 920, battlementTexture),
+      new StraightBattlements(700, 135, 630, 476, -630, battlementTexture),
+      new StraightBattlements(700, 180, 0, 476, -920, battlementTexture),
+      new StraightBattlements(700, 225, -630, 476, -630, battlementTexture),
+      new StraightBattlements(700, 270, -920, 476, 0, battlementTexture),
+      new StraightBattlements(700, 315, -630, 476, 630, battlementTexture),
     ];
 
     for (const wall of walls) {
       this.scene.add(wall);
+    }
+
+    for (const battlement of battlements) {
+      this.scene.add(battlement);
+    }
+  }
+
+  private initTowers() {
+    const towerTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(2, 2);
+      }
+    );
+
+    const towers = [
+      new Tower(100, 600, 350, 880, towerTexture),
+      new Tower(100, 600, -350, 880, towerTexture),
+      new Tower(100, 600, 880, 300, towerTexture),
+      new Tower(100, 600, -880, 300, towerTexture),
+      new Tower(100, 600, -880, -300, towerTexture),
+      new Tower(100, 600, 880, -300, towerTexture),
+      new Tower(100, 600, -350, -880, towerTexture),
+      new Tower(100, 600, 350, -880, towerTexture),
+    ];
+
+    for (const tower of towers) {
+      this.scene.add(tower);
+    }
+  }
+
+  private initCastle() {
+    const wallTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(2, 2);
+      }
+    );
+
+    const towerTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(3, 3);
+      }
+    );
+
+    const battlementTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(0.2, 0.2);
+      }
+    );
+
+    const castleWalls = [new Wall(700, 800, 700, 0, 0, 0, wallTexture)];
+
+    const castleTowers = [
+      new Tower(120, 1200, 350, -350, towerTexture),
+      new Tower(120, 1200, 350, 350, towerTexture),
+      new Tower(120, 1200, -350, -350, towerTexture),
+      new Tower(120, 1200, -350, 350, towerTexture),
+    ];
+
+    const battlements = [
+      new StraightBattlements(700, 0, 0, 676, -340, battlementTexture),
+      new StraightBattlements(700, 90, 340, 676, 0, battlementTexture),
+      new StraightBattlements(700, 270, -340, 676, 0, battlementTexture),
+      new StraightBattlements(700, 180, 0, 676, 340, battlementTexture),
+    ];
+
+    for (const wall of castleWalls) {
+      this.scene.add(wall);
+    }
+
+    for (const tower of castleTowers) {
+      this.scene.add(tower);
+    }
+
+    for (const battlement of battlements) {
+      this.scene.add(battlement);
     }
   }
 

@@ -1,7 +1,7 @@
 import {
   BoxGeometry,
   Mesh,
-  MeshBasicMaterial,
+  MeshPhongMaterial,
   MeshNormalMaterial,
   Texture,
   TorusGeometry,
@@ -25,12 +25,12 @@ export class Terrain extends Mesh {
     
 
     const materials = [
-      new MeshBasicMaterial({ map: dirtTexture }),
-      new MeshBasicMaterial({ map: grassTexture }),
-      new MeshBasicMaterial({ map: dirtTexture }),
-      new MeshBasicMaterial({ map: dirtTexture }),
-      new MeshBasicMaterial({ map: dirtTexture }),
-      new MeshBasicMaterial({ map: dirtTexture }),
+      new MeshPhongMaterial({ map: dirtTexture }),
+      new MeshPhongMaterial({ map: grassTexture }),
+      new MeshPhongMaterial({ map: dirtTexture }),
+      new MeshPhongMaterial({ map: dirtTexture }),
+      new MeshPhongMaterial({ map: dirtTexture }),
+      new MeshPhongMaterial({ map: dirtTexture }),
     ];
 
     const torus = new Mesh(torusGeometry, new MeshNormalMaterial());
@@ -46,5 +46,8 @@ export class Terrain extends Mesh {
 
     this.geometry = terrain.geometry;
     this.material = materials;
+
+    // this.castShadow = true;
+    this.receiveShadow = true;
   }
 }
