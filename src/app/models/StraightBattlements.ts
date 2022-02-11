@@ -25,6 +25,8 @@ export class StraightBattlements extends Group {
         new MeshPhongMaterial({ map: texture })
       );
       battlement.position.x = battlementPosX;
+      battlement.castShadow = true;
+      battlement.receiveShadow = true
       this.add(battlement);
       battlementPosX += 100;
     }

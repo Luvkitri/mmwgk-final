@@ -47,7 +47,7 @@ export class Terrain extends Mesh {
     this.geometry = terrain.geometry;
     this.material = materials;
 
-    // this.castShadow = true;
+    this.castShadow = true;
     this.receiveShadow = true;
   }
 }

@@ -49,8 +49,8 @@ export class App {
     rayleigh: 0.3,
     mieCoefficient: 0.005,
     mieDirectionalG: 0.7,
-    elevation: 14,
-    azimuth: -135,
+    elevation: 40,
+    azimuth: 68,
     exposure: 0.5,
   };
 
@@ -104,7 +104,7 @@ export class App {
     this.light.castShadow = true; // default false
     this.scene.add(this.light);
 
-    this.light.shadow.camera.far = 5000;
+    this.light.shadow.camera.far = 10000;
     this.light.shadow.camera.left = -3000;
     this.light.shadow.camera.bottom = -3000;
     this.light.shadow.camera.right = 3000;
