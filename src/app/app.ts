@@ -30,6 +30,7 @@ import * as WallTexture from "./assets/textures/stone-wall-texture.jpg";
 import { Wall } from "./models/Wall";
 import { Tower } from "./models/Tower";
 import { StraightBattlements } from "./models/StraightBattlements";
+import { CircularBattlements } from "./models/CircularBattlements";
 
 export class App {
   private readonly scene = new Scene();
@@ -287,6 +288,15 @@ export class App {
       }
     );
 
+    const battlementTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(2, 0.2);
+      }
+    );
+
     const towers = [
       new Tower(100, 600, 350, 880, towerTexture),
       new Tower(100, 600, -350, 880, towerTexture),
@@ -298,8 +308,23 @@ export class App {
       new Tower(100, 600, 350, -880, towerTexture),
     ];
 
+    const battlements = [
+      new CircularBattlements(100, 40, 350, 576, 880, battlementTexture),
+      new CircularBattlements(100, 40, -350, 576, 880, battlementTexture),
+      new CircularBattlements(100, 40, 880, 576, 300, battlementTexture),
+      new CircularBattlements(100, 40, -880, 576, 300, battlementTexture),
+      new CircularBattlements(100, 40, -880, 576, -300, battlementTexture),
+      new CircularBattlements(100, 40, 880, 576, -300, battlementTexture),
+      new CircularBattlements(100, 40, -350, 576, -880, battlementTexture),
+      new CircularBattlements(100, 40, 350, 576, -880, battlementTexture),
+    ];
+
     for (const tower of towers) {
       this.scene.add(tower);
+    }
+
+    for (const battlement of battlements) {
+      this.scene.add(battlement);
     }
   }
 
@@ -322,12 +347,21 @@ export class App {
       }
     );
 
-    const battlementTexture = new TextureLoader().load(
+    const straightBattlementTexture = new TextureLoader().load(
       WallTexture,
       function (texture) {
         texture.wrapS = texture.wrapT = RepeatWrapping;
         texture.offset.set(0, 0);
         texture.repeat.set(0.2, 0.2);
+      }
+    );
+
+    const circularBattlementsTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(2, 0.2);
       }
     );
 
@@ -340,11 +374,18 @@ export class App {
       new Tower(120, 1200, -350, 350, towerTexture),
     ];
 
-    const battlements = [
-      new StraightBattlements(700, 0, 0, 676, -340, battlementTexture),
-      new StraightBattlements(700, 90, 340, 676, 0, battlementTexture),
-      new StraightBattlements(700, 270, -340, 676, 0, battlementTexture),
-      new StraightBattlements(700, 180, 0, 676, 340, battlementTexture),
+    const straightbBattlements = [
+      new StraightBattlements(700, 0, 0, 676, -340, straightBattlementTexture),
+      new StraightBattlements(700, 90, 340, 676, 0, straightBattlementTexture),
+      new StraightBattlements(700, 270, -340, 676, 0, straightBattlementTexture),
+      new StraightBattlements(700, 180, 0, 676, 340, straightBattlementTexture),
+    ];
+
+    const circularBattlements = [
+      new CircularBattlements(120, 40, 350, 876, -350, circularBattlementsTexture),
+      new CircularBattlements(120, 40, 350, 876, 350, circularBattlementsTexture),
+      new CircularBattlements(120, 40, -350, 876, -350, circularBattlementsTexture),
+      new CircularBattlements(120, 40, -350, 876, 350, circularBattlementsTexture),
     ];
 
     for (const wall of castleWalls) {
@@ -355,7 +396,11 @@ export class App {
       this.scene.add(tower);
     }
 
-    for (const battlement of battlements) {
+    for (const battlement of straightbBattlements) {
+      this.scene.add(battlement);
+    }
+
+    for (const battlement of circularBattlements) {
       this.scene.add(battlement);
     }
   }
