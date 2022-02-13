@@ -31,6 +31,7 @@ import { Wall } from "./models/Wall";
 import { Tower } from "./models/Tower";
 import { StraightBattlements } from "./models/StraightBattlements";
 import { CircularBattlements } from "./models/CircularBattlements";
+import { GateBase } from "./models/GateBase";
 
 export class App {
   private readonly scene = new Scene();
@@ -144,6 +145,9 @@ export class App {
     // Add Towers
     this.initTowers();
 
+    // Add Gate
+    this.initGate();
+
     // Add Castle
     this.initCastle();
 
@@ -152,8 +156,8 @@ export class App {
     this.camera.lookAt(new Vector3(0, 0, 0));
     this.initCameraControls();
 
-    const helper = new CameraHelper(this.light.shadow.camera);
-    this.scene.add(helper);
+    // const helper = new CameraHelper(this.light.shadow.camera);
+    // this.scene.add(helper);
 
     this.render();
   }
@@ -194,7 +198,11 @@ export class App {
       .copy(this.sun)
       .normalize();
 
-    this.light.position.set(4000 * this.sun.x, 4000 * this.sun.y, 4000 * this.sun.z);
+    this.light.position.set(
+      4000 * this.sun.x,
+      4000 * this.sun.y,
+      4000 * this.sun.z
+    );
 
     this.renderer.toneMappingExposure = this.effectController.exposure;
   }
@@ -249,9 +257,10 @@ export class App {
 
     const walls = [
       new Wall(700, 400, 100, 0, 0, 880, wallTexture), // north-west
-      new Wall(700, 400, 100, 45, 600, 600, wallTexture), // west
-      // new Wall(700, 400, 100, 90, 880, 0, wallTexture), // south-west
-      new Wall(700, 400, 100, 135, 600, -600, wallTexture), //south
+      new Wall(350, 400, 100, 30, 550, 800, wallTexture), // west
+      new Wall(500, 400, 100, 75, 800, 400, wallTexture), // left-gate-wall
+      new Wall(500, 400, 100, 105, 800, -400, wallTexture), // rigth-gate-wall
+      new Wall(350, 400, 100, 150, 550, -800, wallTexture), //south
       new Wall(700, 400, 100, 180, 0, -880, wallTexture), // south-east
       new Wall(700, 400, 100, 225, -600, -600, wallTexture), // east
       new Wall(700, 400, 100, 270, -880, 0, wallTexture), // north-east
@@ -260,9 +269,10 @@ export class App {
 
     const battlements = [
       new StraightBattlements(700, 0, 0, 476, 920, battlementTexture),
-      new StraightBattlements(700, 45, 630, 476, 630, battlementTexture),
-      // new StraightBattlements(700, 0, 0, 476, 920, battlementTexture),
-      new StraightBattlements(700, 135, 630, 476, -630, battlementTexture),
+      new StraightBattlements(350, 30, 620, 476, 805, battlementTexture),
+      new StraightBattlements(500, 75, 820, 476, 490, battlementTexture),
+      new StraightBattlements(500, 105, 820, 476, -490, battlementTexture),
+      new StraightBattlements(350, 150, 570, 476, -835, battlementTexture),
       new StraightBattlements(700, 180, 0, 476, -920, battlementTexture),
       new StraightBattlements(700, 225, -630, 476, -630, battlementTexture),
       new StraightBattlements(700, 270, -920, 476, 0, battlementTexture),
@@ -300,10 +310,10 @@ export class App {
     const towers = [
       new Tower(100, 600, 350, 880, towerTexture),
       new Tower(100, 600, -350, 880, towerTexture),
-      new Tower(100, 600, 880, 300, towerTexture),
+      new Tower(100, 600, 690, 690, towerTexture),
       new Tower(100, 600, -880, 300, towerTexture),
       new Tower(100, 600, -880, -300, towerTexture),
-      new Tower(100, 600, 880, -300, towerTexture),
+      new Tower(100, 600, 690, -690, towerTexture),
       new Tower(100, 600, -350, -880, towerTexture),
       new Tower(100, 600, 350, -880, towerTexture),
     ];
@@ -311,10 +321,10 @@ export class App {
     const battlements = [
       new CircularBattlements(100, 40, 350, 576, 880, battlementTexture),
       new CircularBattlements(100, 40, -350, 576, 880, battlementTexture),
-      new CircularBattlements(100, 40, 880, 576, 300, battlementTexture),
+      new CircularBattlements(100, 40, 690, 576, 690, battlementTexture),
       new CircularBattlements(100, 40, -880, 576, 300, battlementTexture),
       new CircularBattlements(100, 40, -880, 576, -300, battlementTexture),
-      new CircularBattlements(100, 40, 880, 576, -300, battlementTexture),
+      new CircularBattlements(100, 40, 690, 576, -690, battlementTexture),
       new CircularBattlements(100, 40, -350, 576, -880, battlementTexture),
       new CircularBattlements(100, 40, 350, 576, -880, battlementTexture),
     ];
@@ -325,6 +335,40 @@ export class App {
 
     for (const battlement of battlements) {
       this.scene.add(battlement);
+    }
+  }
+
+  private initGate() {
+    const gateBaseTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(3, 2);
+      }
+    );
+
+    const battlementTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(0.2, 0.2);
+      }
+    );
+
+    const gateBaseBattlements = [
+      new StraightBattlements(600, 90, 1030, 650, -50, battlementTexture),
+      new StraightBattlements(600, 90, 770, 650, -50, battlementTexture),
+      new StraightBattlements(300, 0, 950, 650, -270, battlementTexture),
+      new StraightBattlements(300, 0, 950, 650, 270, battlementTexture),
+    ];
+
+    const gateBase = new GateBase(560, 750, 280, 90, 900, 0, gateBaseTexture);
+    this.scene.add(gateBase);
+
+    for (const gateBaseBattlement of gateBaseBattlements) {
+      this.scene.add(gateBaseBattlement);
     }
   }
 
@@ -377,15 +421,50 @@ export class App {
     const straightbBattlements = [
       new StraightBattlements(700, 0, 0, 676, -340, straightBattlementTexture),
       new StraightBattlements(700, 90, 340, 676, 0, straightBattlementTexture),
-      new StraightBattlements(700, 270, -340, 676, 0, straightBattlementTexture),
+      new StraightBattlements(
+        700,
+        270,
+        -340,
+        676,
+        0,
+        straightBattlementTexture
+      ),
       new StraightBattlements(700, 180, 0, 676, 340, straightBattlementTexture),
     ];
 
     const circularBattlements = [
-      new CircularBattlements(120, 40, 350, 876, -350, circularBattlementsTexture),
-      new CircularBattlements(120, 40, 350, 876, 350, circularBattlementsTexture),
-      new CircularBattlements(120, 40, -350, 876, -350, circularBattlementsTexture),
-      new CircularBattlements(120, 40, -350, 876, 350, circularBattlementsTexture),
+      new CircularBattlements(
+        120,
+        40,
+        350,
+        876,
+        -350,
+        circularBattlementsTexture
+      ),
+      new CircularBattlements(
+        120,
+        40,
+        350,
+        876,
+        350,
+        circularBattlementsTexture
+      ),
+      new CircularBattlements(
+        120,
+        40,
+        -350,
+        876,
+        -350,
+        circularBattlementsTexture
+      ),
+      new CircularBattlements(
+        120,
+        40,
+        -350,
+        876,
+        350,
+        circularBattlementsTexture
+      ),
     ];
 
     for (const wall of castleWalls) {
