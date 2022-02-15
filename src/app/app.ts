@@ -14,6 +14,7 @@ import {
   DirectionalLight,
   PCFSoftShadowMap,
   CameraHelper,
+  Object3D,
 } from "three";
 import { Stats } from "stats.ts";
 import { Sky } from "./models/Sky";
@@ -27,11 +28,15 @@ import * as WaterTexture from "./assets/textures/waternormals.jpg";
 import * as GrassTexture from "./assets/textures/grass-texture.jpg";
 import * as DirtTexture from "./assets/textures/dirt-texture.jpg";
 import * as WallTexture from "./assets/textures/stone-wall-texture.jpg";
+import * as WoodTexture from "./assets/textures/old-wood-texture.jpg";
 import { Wall } from "./models/Wall";
 import { Tower } from "./models/Tower";
 import { StraightBattlements } from "./models/StraightBattlements";
 import { CircularBattlements } from "./models/CircularBattlements";
 import { GateBase } from "./models/GateBase";
+import { Gate } from "./models/Gate";
+import { GatePivot } from "./models/GatePivot";
+import { Bridge } from "./models/Bridge";
 
 export class App {
   private readonly scene = new Scene();
@@ -63,6 +68,8 @@ export class App {
   private gui: any;
   private water: Water;
   private light: DirectionalLight;
+  private gate: Gate;
+  private gatePivot: GatePivot;
 
   constructor() {
     // Renderer config
@@ -116,10 +123,6 @@ export class App {
     // Add Fog
     this.scene.fog = new Fog(new Color(0xdfe9f3), 1000, 10000);
 
-    // Add gui
-    this.gui = new dat.GUI();
-    this.initGuiControls();
-
     // Add Terrain
     const terrainMultiplier = 8;
     this.terrain = new Terrain(
@@ -146,18 +149,29 @@ export class App {
     this.initTowers();
 
     // Add Gate
-    this.initGate();
+    this.gate = this.initGate();
+    this.scene.add(this.gate);
+    this.gatePivot = new GatePivot(1030, 256, 0);
+    this.scene.add(this.gatePivot);
+    this.gatePivot.add(this.gate);
 
     // Add Castle
     this.initCastle();
+
+    // Add bridge
+    this.initBridge();
+
+    // Add gui
+    this.gui = new dat.GUI();
+    this.initGuiControls();
 
     // Add camera
     this.camera.position.set(5000, 1000, 5000);
     this.camera.lookAt(new Vector3(0, 0, 0));
     this.initCameraControls();
 
-    // const helper = new CameraHelper(this.light.shadow.camera);
-    // this.scene.add(helper);
+    const helper = new CameraHelper(this.light.shadow.camera);
+    this.scene.add(helper);
 
     this.render();
   }
@@ -226,6 +240,25 @@ export class App {
       .name("distortionScale");
     folderWater.add(waterUniforms.size, "value", 0.1, 10, 0.1).name("size");
     folderWater.open();
+
+    const gateFolder = this.gui.addFolder("Gate");
+    gateFolder.add(
+      {
+        openGate: () => {
+          this.gatePivot.open();
+        },
+      },
+      "openGate"
+    );
+    gateFolder.add(
+      {
+        closeGate: () => {
+          this.gatePivot.close();
+        },
+      },
+      "closeGate"
+    );
+    gateFolder.open();
 
     this.guiChanged();
   }
@@ -344,7 +377,7 @@ export class App {
       function (texture) {
         texture.wrapS = texture.wrapT = RepeatWrapping;
         texture.offset.set(0, 0);
-        texture.repeat.set(3, 2);
+        texture.repeat.set(2, 4);
       }
     );
 
@@ -354,6 +387,15 @@ export class App {
         texture.wrapS = texture.wrapT = RepeatWrapping;
         texture.offset.set(0, 0);
         texture.repeat.set(0.2, 0.2);
+      }
+    );
+
+    const gateTexture = new TextureLoader().load(
+      WoodTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(1, 2);
       }
     );
 
@@ -370,6 +412,8 @@ export class App {
     for (const gateBaseBattlement of gateBaseBattlements) {
       this.scene.add(gateBaseBattlement);
     }
+
+    return new Gate(560, 350, 15, 90, 1060, 0, gateTexture);
   }
 
   private initCastle() {
@@ -484,6 +528,40 @@ export class App {
     }
   }
 
+  private initBridge() {
+    const bridgeTexture = new TextureLoader().load(
+      WoodTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(1, 2);
+      }
+    );
+
+    const bridgeSupportTexture = new TextureLoader().load(
+      WallTexture,
+      function (texture) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.offset.set(0, 0);
+        texture.repeat.set(1, 2);
+      }
+    );
+
+    const bridge = new Bridge(
+      300,
+      20,
+      400,
+      90,
+      1500,
+      240,
+      0,
+      bridgeTexture,
+      bridgeSupportTexture
+    );
+
+    this.scene.add(bridge);
+  }
+
   private render() {
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);
@@ -493,5 +571,8 @@ export class App {
     // Water movement
     this.water.material.uniforms["time"].value += 1.0 / 60.0;
     this.stats.end();
+
+    // Gate animation
+    this.gatePivot.animation();
   }
 }
